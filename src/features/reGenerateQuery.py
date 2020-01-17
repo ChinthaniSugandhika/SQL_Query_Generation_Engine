@@ -1,28 +1,30 @@
-def reGenereateQuery(tableList, attributeList,joinList,conditionList,):
-    whereClause=generateCondition(conditionList,joinList)
+def reGenereateQuery(tableList, attributeList, joinList, conditionList, ):
+    whereClause = generateCondition(conditionList, joinList)
     sqlQuery = ''
-    if (attributeList and tableList and conditionList):
-        sqlQuery = "SELECT " + ', '.join(attributeList) + " FROM " + ', '.join(tableList) + " WHERE " + whereClause + ";"
+    if attributeList and tableList and conditionList:
+        sqlQuery = "SELECT " + ', '.join(attributeList) + " FROM " + ', '.join(
+            tableList) + " WHERE " + whereClause + ";"
 
-    if (attributeList and tableList and not conditionList):
+    if attributeList and tableList and not conditionList:
         sqlQuery = "SELECT " + ','.join(attributeList) + " FROM " + ','.join(tableList) + ";"
 
-    if (not attributeList and tableList and conditionList):
+    if not attributeList and tableList and conditionList:
         sqlQuery = "SELECT * FROM " + ', '.join(tableList) + " WHERE " + whereClause + ";"
 
-    if (not attributeList and not conditionList):
+    if not (attributeList or conditionList):
         sqlQuery = "SELECT * FROM " + ','.join(tableList) + ";"
     print("\n\nFinal SQL Query :", sqlQuery)
     return sqlQuery
 
-def generateCondition(conditionList,joinList):
+
+def generateCondition(conditionList, joinList):
     newCondition = ''
     length = len(conditionList)
     conCatLength = length - 1
     count = 0
-    while (count < length):
+    while count < length:
         con = conditionList[count]
-        if (not (conCatLength == count)):
+        if not (conCatLength == count):
             newCondition = newCondition + con + ' and '
         else:
             newCondition = newCondition + con
@@ -34,17 +36,17 @@ def generateCondition(conditionList,joinList):
     if joinList:
         if newCondition != '':
             newCondition = newCondition + ' and '
-            while (count < length):
+            while count < length:
                 join = joinList[count]
-                if (not (conCatLength == count)):
+                if not (conCatLength == count):
                     newCondition = newCondition + join + ' and '
                 else:
                     newCondition = newCondition + join
                 count = count + 1
         else:
-            while (count < length):
+            while count < length:
                 join = joinList[count]
-                if (not (conCatLength == count)):
+                if not (conCatLength == count):
                     newCondition = newCondition + join + ' and '
                 else:
                     newCondition = newCondition + join
