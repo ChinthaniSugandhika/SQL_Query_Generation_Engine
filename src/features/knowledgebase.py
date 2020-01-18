@@ -31,7 +31,7 @@ def createKnowledgeBase(listType, itemsList):
 
 def operatorKnowledgeBase(nouns, adverbs):
     symbolList = []
-    greaterThanList = ['greater', 'bigger', 'higher', 'great', 'more']
+    greaterThanList = ['greater', 'bigger', 'higher', 'great', 'more','above', 'over']
     lesserThanList = ['lesser', 'smaller', 'lower', 'less']
     equalList = ['equal', 'equals', 'same']
     for noun in nouns:

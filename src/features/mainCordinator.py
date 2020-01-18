@@ -30,11 +30,33 @@ def getTableNames(nouns, tables):
     return duplicateTableList
 
 
-def getAttributeNames(nouns, attributes, tabs, taggedList, tables):
+def getAttributeNames(attributes, tabs, taggedList, tables):
     duplicateAttributeList = []
     attributeList = []
     keyWords = ['of', 'from']
     wordList = []
+    words = []
+
+    for word, tag in taggedList:
+        words.append(word)
+    count = 1
+    tableIndex = 0
+    while count < len(words):
+        if words[count] in keyWords:
+            tableIndex = tableIndex + count + 1
+        count += 1
+    count = 0
+    while count < len(words):
+        if words[count] in tabs and not (count == tableIndex):
+            words.remove(words[count])
+        count += 1
+    posTaggedNounlist = nltk.pos_tag(words)
+    nouns = preProcessor.extractAdjectivesAndNouns(posTaggedNounlist)
+
+    if tableIndex==0:
+        nounList=preProcessor.extractAdjectivesAndNouns(taggedList)
+        attributeList=identifyAttributesOfReleventaTable(tabs,nounList)
+
     for word, tag in taggedList:
         lemtedWord = preProcessor.lemmatizeSingleWord(word)
         tName = getTableName(lemtedWord, tables)
@@ -53,11 +75,13 @@ def getAttributeNames(nouns, attributes, tabs, taggedList, tables):
             index3 = wordList[index - 3]
             if index1 in keyWords:
                 keyWordIndex = wordList.index(index1)
-            if index2 in keyWords:
+            elif index2 in keyWords:
                 keyWordIndex = wordList.index(index2)
-            if index3 in keyWords:
+            elif index3 in keyWords:
                 keyWordIndex = wordList.index(index3)
-            for i in range(0, keyWordIndex - 1):      #issue in attribues identification
+            else:
+                wordList.remove(word)
+            for i in range(0, keyWordIndex - 1):  # issue in attribues identification keyWordIndex-1
                 n = nouns[i]
                 lemmedn = preProcessor.lemmatizeSingleWord(n)
                 if nouns[i] in attributes:
@@ -71,6 +95,12 @@ def getAttributeNames(nouns, attributes, tabs, taggedList, tables):
                             sim = s1.wup_similarity(s2)
                             if sim >= 0.8:
                                 attributeList.append(att)
+    for noun in nouns:
+        if noun == 'name':
+            attributeList.append(' first_name')
+            attributeList.append(' middle_name')
+            attributeList.append(' last_name')
+
     for x in attributeList:
         if x not in duplicateAttributeList:
             duplicateAttributeList.append(x)
@@ -98,6 +128,104 @@ def getTableName(word, tables):
     return tableList
 
 
+tableList = []
+attributeList = []
+
+
+def identifyAttributesOfReleventaTable(identifiedTableNames, identifiedAttributeNames):
+    employeeTable = ["number", "first_name", "middle_name", "last_name", "salary", "address", "gender", "date_of_birth",
+                     "department_number", "supervisor"]
+    projectTable = ["number", "name", "location", "department_number"]
+    departmentTable = ["number", "name", "employee_number", "start_date"]
+    dependentTable = ["dependent_number", "first_name", "gender", "date_of_birth", "relationship", "employee_number"]
+    workTable = ["employee_number", "project_number", "hours_per_week"]
+    locationTable = ["location", "department_number"]
+
+    for attribute in identifiedAttributeNames:
+        if attribute in employeeTable:
+            tableName = "employee"
+            if tableName in identifiedTableNames:
+                tableList.append(tableName)
+                attributeName = attribute
+                attributeList.append(attributeName)
+        if attribute in projectTable:
+            tableName = "project"
+            if tableName in identifiedTableNames:
+                tableList.append(tableName)
+                attributeName = attribute
+                attributeList.append(attributeName)
+        if attribute in departmentTable:
+            tableName = "department"
+            if tableName in identifiedTableNames:
+                tableList.append(tableName)
+                attributeName = attribute
+                attributeList.append(attributeName)
+        if attribute in dependentTable:
+            tableName = "dependent"
+            if tableName in identifiedTableNames:
+                tableList.append(tableName)
+                attributeName = attribute
+                attributeList.append(attributeName)
+        if attribute in workTable:
+            tableName = "work"
+            if tableName in identifiedTableNames:
+                tableList.append("work")
+                attributeName = attribute
+                attributeList.append(attributeName)
+        if attribute in locationTable:
+            tableName = "location"
+            if tableName in identifiedTableNames:
+                tableList.append(tableName)
+                attributeName = attribute
+                attributeList.append(attributeName)
+    print("tName :", tableList)
+    print("attList :", attributeList)
+    return attributeList
+
+def identifyTablesOfTheRelevantAttribute(identifiedAttributeNames):
+    employeeTable = ["number", "first_name", "middle_name", "last_name", "salary", "address", "gender", "date_of_birth",
+                     "department_number", "supervisor"]
+    projectTable = ["number", "name", "location", "department_number"]
+    departmentTable = ["number", "name", "employee_number", "start_date"]
+    dependentTable = ["dependent_number", "first_name", "gender", "date_of_birth", "relationship", "employee_number"]
+    workTable = ["employee_number", "project_number", "hours_per_week"]
+    locationTable = ["location", "department_number"]
+
+    for attribute in identifiedAttributeNames:
+        if attribute in employeeTable:
+            tableName = "employee"
+            tableList.append(tableName)
+            attributeName = attribute
+            attributeList.append(attributeName)
+        if attribute in projectTable:
+            tableName = "project"
+            tableList.append(tableName)
+            attributeName = attribute
+            attributeList.append(attributeName)
+        if attribute in departmentTable:
+            tableName = "department"
+            tableList.append(tableName)
+            attributeName = attribute
+            attributeList.append(attributeName)
+        if attribute in dependentTable:
+            tableName = "dependent"
+            tableList.append(tableName)
+            attributeName = attribute
+            attributeList.append(attributeName)
+        if attribute in workTable:
+            tableName = "work"
+            tableList.append(tableName)
+            attributeName = attribute
+            attributeList.append(attributeName)
+        if attribute in locationTable:
+            tableName = "location"
+            tableList.append(tableName)
+            attributeName = attribute
+            attributeList.append(attributeName)
+    print("tName :", tableList)
+    print("attList :", attributeList)
+    return tableList
+
 def intermediateLayer(userInput):
     outputDic = {}
     taggedWordList = preProcessor.tockenize(userInput)
@@ -111,13 +239,14 @@ def intermediateLayer(userInput):
     print("att value: ", attributeValues)
     adjectivesNouns = preProcessor.extractAdjectivesAndNouns(taggedWordList)
     print("adjectives ", adjectivesNouns)
+    adjectiveAdverbNouns= preProcessor.extractAdjectivesAdverbsdNouns(taggedWordList)
     adverbs = preProcessor.extractAdverbs(taggedWordList)
     print("adverbs ", adverbs)
     adjectives = preProcessor.extractAdjectives(taggedWordList)
     print("adjectives ", adjectives)
     lemmatizedWords = preProcessor.lemmatizing(nounList)
     print("lemmatized Words :", lemmatizedWords)
-    symbol = knowledgebase.operatorKnowledgeBase(adjectivesNouns, adverbs)
+    symbol = knowledgebase.operatorKnowledgeBase(adjectiveAdverbNouns, adverbs)
     print("Symbols :", symbol)
     tables = XmlExtractor.readTableNames()
     print("tables :", tables)
@@ -125,9 +254,18 @@ def intermediateLayer(userInput):
     tableNames = getTableNames(lemmatizedWords, tables)
     print("table names :", tableNames)
     join = queryGenerator.joining(tableNames)
-    attributeNames = getAttributeNames(adjectivesNouns, attributes, tableNames, lemmedText, tables)
+    attributeNames = getAttributeNames(attributes, tableNames, lemmedText, tables)
     print("attribute Names :", attributeNames)
-    conditionAttributeName = preProcessor.extractConditionAttribute(adjectivesNouns, attributes, taggedWordList)
+    identifyAttributesOfReleventaTable(tableNames, attributeNames)
+    conditionAttributeName = preProcessor.extractConditionAttribute(adjectivesNouns, attributes, taggedWordList,
+                                                                    attributeValues)
+    if conditionAttributeName and not tableNames and not attributeNames:
+        for conditionAttribute in conditionAttributeName:
+            conditionAttributeNamesList=[]
+            conditionAttributeNamesList.append(conditionAttribute)
+            tableNames=identifyTablesOfTheRelevantAttribute(conditionAttributeNamesList)
+            #tableNames.append(tableName)
+
     print("condition Att :", conditionAttributeName)
     concatenatingOperator = preProcessor.extractConditionConcatenatingOperator(attributeValues,
                                                                                taggedWordList)
@@ -144,9 +282,9 @@ def intermediateLayer(userInput):
         finalCondition = finalCondition + adjectiveAttributeValueCondition
     if condition and not finalCondition:
         finalCondition = finalCondition + condition
-    intermediateStatement = "SELECT " + ','.join(attributeNames) + " FROM " + ','.join(
-        tableNames) + ' WHERE ' + finalCondition + ";"
-    print("intermediateStatement", intermediateStatement)
+    #intermediateStatement = "SELECT " + ','.join(attributeNames) + " FROM " + ','.join(
+        #tableNames) + ' WHERE ' + finalCondition + ";"
+    #print("intermediateStatement", intermediateStatement)
     finalQuery = queryGenerator.generateSqlQuery(attributeNames, tableNames, finalCondition)
     outputDic['query'] = finalQuery
     outputDic['tables'] = tableNames

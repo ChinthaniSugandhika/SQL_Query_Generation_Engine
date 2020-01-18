@@ -63,10 +63,19 @@ def extractAdjectivesAndNouns(tagged):
     adjectiveNounList = []
     for word, tag in tagged:
         if tag in 'NN' or tag in 'NNS' or tag in 'JJ' or tag in 'JJR' or tag in 'JJS' or tag in (
-                'VB') or tag in 'VBD' or tag in 'VBG' or tag in "VBN" or tag in "VBZ" or tag in 'VBP' or tag in 'MD':
+                'VB') or tag in 'VBD' or tag in 'VBG' or tag in "VBN" or tag in "VBZ" or tag in 'VBP' or tag in 'MD' or tag in 'IN':
             adjectiveNounList.append(word)
     return adjectiveNounList
 
+#
+# Extract adjectives and nouns in the given user query
+def extractAdjectivesAdverbsdNouns(tagged):
+    adjectiveNounList = []
+    for word, tag in tagged:
+        if tag in 'NN' or tag in 'NNS' or tag in 'JJ' or tag in 'JJR' or tag in 'JJS' or tag in (
+                'VB') or tag in 'VBD' or tag in 'VBG' or tag in "VBN" or tag in "VBZ" or tag in 'VBP' or tag in 'MD' or tag in 'IN' or tag in 'RB' or tag in 'RBR' or tag in 'RBS':
+            adjectiveNounList.append(word)
+    return adjectiveNounList
 
 # Extract adverbs in the given user query
 def extractAdverbs(tagged):
@@ -86,13 +95,15 @@ def extractAdjectives(tagged):
     return adjectivesList
 
 
-def extractConditionAttribute(nouns, attributesList, tagged):
+def extractConditionAttribute(nouns, attributesList, tagged, attributeValueList):
     greaterThanList = ['greater', 'bigger', 'higher', 'great', 'more', 'lesser', 'smaller', 'lower', 'less']
     lesserThanList = ['lesser', 'smaller', 'lower', 'less']
     equalList = ['equal', 'equals', 'same']
     extractedWordsList = []
     conditionAttributeList = []
     taggedWords = []
+    posTaggedAttributeValuelist=nltk.pos_tag(attributeValueList)
+
     for word, tag in tagged:
         if not (not (tag not in 'VBZ') or not (word in nouns)):
             taggedWords.append(word)
@@ -115,12 +126,20 @@ def extractConditionAttribute(nouns, attributesList, tagged):
                     sim = s1.wup_similarity(s2)
                     if sim is None:
                         return
-                    elif sim >= 0.8:
+                    if sim >= 0.8:
                         conditionAttributeList.append(att)
-                    else:
-                        return
+                    # elif sim >= 0.8:
+                    # conditionAttributeList.append(att)
+                    # else:
+                    #     return
 
+    for word, tag in posTaggedAttributeValuelist:
+        if tag in ('CD') and len(conditionAttributeList)==0:
+            number = int(word)
+            if number >= 100:
+                conditionAttributeList.append('salary')
     return conditionAttributeList
+
 
 
 def extractConditionConcatenatingOperator(cardinalDigits, tagged):
