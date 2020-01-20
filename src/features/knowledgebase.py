@@ -2,6 +2,8 @@ import nltk
 
 nltk.download('wordnet')
 from nltk.corpus import wordnet
+from nltk.corpus import wordnet as wn
+from src.features import preProcessor
 import re
 
 
@@ -33,7 +35,7 @@ def operatorKnowledgeBase(nouns, adverbs):
     symbolList = []
     greaterThanList = ['greater', 'bigger', 'higher', 'great', 'more','above', 'over']
     lesserThanList = ['lesser', 'smaller', 'lower', 'less']
-    equalList = ['equal', 'equals', 'same']
+    equalList = ['equal', 'equals', 'same','is', 'in']
     for noun in nouns:
         if noun in equalList:
             if len(adverbs) > 0:
@@ -60,12 +62,29 @@ def operatorKnowledgeBase(nouns, adverbs):
     return symbolList
 
 
-def attributeValueKnowledgeBase(adjectivesList):
+def attributeValueKnowledgeBase(tockens):
     dic = {'female': 'gender', 'male': 'gender', 'HR': 'name'}
+    femaleList=['woman', 'women']
+    maleList=['men','man']
     conditionList = []
     for key, value in dic.items():
-        if key in adjectivesList:
-            conditionList.append(value + '=' + '"' + key + '"')
+        for tocken in tockens:
+            s1Lemmas = set(wordnet.all_lemma_names())
+            lemmatizedTocken=preProcessor.lemmatizeSingleWord(tocken)
+            if key in s1Lemmas and lemmatizedTocken in s1Lemmas:
+                s1 = wn.synsets(lemmatizedTocken)[0]
+                s2 = wn.synsets(key)[0]
+                sim = s1.wup_similarity(s2)
+                if sim is None:
+                    continue
+                elif sim >= 0.9:
+                    conditionList.append(value + '=' + '"' + key + '"')
+                elif lemmatizedTocken in femaleList and key=='female':
+                    conditionList.append(value + '=' + '"' + key + '"')
+                elif lemmatizedTocken in maleList and key=='male':
+                    conditionList.append(value + '=' + '"' + key + '"')
+                else:
+                    continue
 
     length = len(conditionList)
     count = 0
@@ -80,3 +99,5 @@ def attributeValueKnowledgeBase(adjectivesList):
         count += 1
         c += 1
     return condition
+
+attributeValueKnowledgeBase(['men','male','woman','female'])

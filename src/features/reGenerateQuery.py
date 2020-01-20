@@ -3,7 +3,7 @@ def reGenereateQuery(tableList, attributeList, joinList, conditionList, ):
     sqlQuery = ''
     if attributeList and tableList and conditionList:
         sqlQuery = "SELECT " + ', '.join(attributeList) + " FROM " + ', '.join(
-            tableList) + " WHERE " + whereClause + ";"
+            tableList) + " WHERE " + whereClause + ';'
 
     if attributeList and tableList and not conditionList:
         sqlQuery = "SELECT " + ','.join(attributeList) + " FROM " + ','.join(tableList) + ";"

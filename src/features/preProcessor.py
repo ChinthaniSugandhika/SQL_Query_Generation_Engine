@@ -1,212 +1,217 @@
-import nltk
+import xml.etree.ElementTree as ET
+from builtins import print
 
-from nltk.corpus import wordnet
-
-nltk.download('wordnet')
-from nltk.corpus import wordnet as wn
-import nltk
-
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-from nltk.corpus import stopwords
-
-nltk.download('stopwords')
-from nltk.stem import WordNetLemmatizer
+tree = ET.parse('D:\\Degree@Mora\\Level4\\FYP\\Newfolder\\flaskApp\\src\\features\\dataNew.xml')
+root = tree.getroot()
 
 
-# Remove stop words
-def removeStopWords(tagged):
-    stopWords = set(stopwords.words('english'))
-    filterdSentence = []
-    essenialWords = ['or', 'and', 'of', 'from']
-    for word, tag in tagged:
-        if not (word in stopWords) or word in essenialWords:
-            filterdSentence.append(word)
-    print("filtered", filterdSentence)
-    posTaggedFilterdSentence = nltk.pos_tag(filterdSentence)
-    print("postaggedFilterd :", posTaggedFilterdSentence)
-    return posTaggedFilterdSentence
-
-
-# remove stop words without repostagging
-def removeStopWords2(tagged):
-    stopWords = set(stopwords.words('english'))
-    filterdSentence = []
-    essenialWords = ['or', 'and', 'of', 'from']
-    for word, tag in tagged:
-        if not ((word in stopWords) and not (word in essenialWords)):
-            filterdSentence.append(word)
-    return filterdSentence
-
-
-# Extract Nouns in the given user query
-def extractNouns(tagged):
-    nounList = []
-    for word, tag in tagged:
-        if tag in 'NN' or tag in 'NNS':
-            nounList.append(word)
-    return nounList
-
-
-# Extract Integer Values in the given user query
-def extractIntegerValues(tagged):
-    taggedList = tagged
-    integerValueList = []
-    for word, tag in taggedList:
-        if tag in 'CD' or tag == 'NNP' or tag == 'NNPS':
-            integerValueList.append(word)
-    return integerValueList
-
-
-# Extract adjectives and nouns in the given user query
-def extractAdjectivesAndNouns(tagged):
-    adjectiveNounList = []
-    for word, tag in tagged:
-        if tag in 'NN' or tag in 'NNS' or tag in 'JJ' or tag in 'JJR' or tag in 'JJS' or tag in (
-                'VB') or tag in 'VBD' or tag in 'VBG' or tag in "VBN" or tag in "VBZ" or tag in 'VBP' or tag in 'MD' or tag in 'IN':
-            adjectiveNounList.append(word)
-    return adjectiveNounList
-
+# def joining(tableList):
+#     if len(tableList) > 1:
+#         table1Pk = ''
+#         table2Pk = ''
+#         join = ''
+#         table1 = tableList[0]
+#         table2 = tableList[1]
 #
-# Extract adjectives and nouns in the given user query
-def extractAdjectivesAdverbsdNouns(tagged):
-    adjectiveNounList = []
-    for word, tag in tagged:
-        if tag in 'NN' or tag in 'NNS' or tag in 'JJ' or tag in 'JJR' or tag in 'JJS' or tag in (
-                'VB') or tag in 'VBD' or tag in 'VBG' or tag in "VBN" or tag in "VBZ" or tag in 'VBP' or tag in 'MD' or tag in 'IN' or tag in 'RB' or tag in 'RBR' or tag in 'RBS':
-            adjectiveNounList.append(word)
-    return adjectiveNounList
+#         for table in root.findall('table'):
+#             tableName = table.get('name')
+#             if tableName == table1:
+#                 for column in table.findall('column'):
+#                     value1 = column.get('value1')
+#                     value2 = column.get('value2')
+#                     if value1:
+#                         table1Pk = table1Pk + column.get('name')
+#                     if value2 and column.get('ref') == table2:
+#                         table2Pk = table2Pk + column.get('name')
+#                         join = join + table1Pk + ' = ' + table2Pk
+#         if table2Pk == '':
+#             for tab in root.findall('table'):
+#                 tabName = tab.get('name')
+#                 if tabName == table2:
+#                     for col in tab.findall('column'):
+#                         colValue2 = col.get('value2')
+#                         if colValue2:
+#                             table2Pk = table2Pk + col.get('name')
+#                             join = join + table1Pk + ' = ' + table2Pk
+#     else:
+#         join = ""
+#     return join
 
-# Extract adverbs in the given user query
-def extractAdverbs(tagged):
-    adverbList = []
-    for word, tag in tagged:
-        if tag in 'RB' or tag in 'RBR' or tag in 'RBS':
-            adverbList.append(word)
-    return adverbList
+def joining(tableList):
+   if (len(tableList)==2):
+       return join2(tableList)
+   #if (len(tableList) == 3):
+       #return join3(tableList)
+
+def join2(tableList):
+    table1Pk = ''
+    table2Pk = ''
+    join = ''
+    table1 = tableList[0]
+    table2 = tableList[1]
+
+    for table in root.findall('table'):
+        tableName = table.get('name')
+        if tableName == table1:
+            for column in table.findall('column'):
+                value1 = column.get('value1')
+                value2 = column.get('value2')
+                if value1:
+                    table1Pk = table1Pk + column.get('name')
+                if value2:
+                    if column.get('ref') == table2:
+                        table1Pk = ''
+                        table1Pk = table1Pk + column.get('name')
+                        for tab in root.findall('table'):
+                            tabName = tab.get('name')
+                            if tabName == table2:
+                                for col in tab.findall('column'):
+                                    if col.get('value1'):
+                                        table2Pk = table2Pk + col.get('name')
+                                        join = join + table1Pk + ' = ' + table2Pk
+    if table2Pk == '':
+        for tab in root.findall('table'):
+            tabName = tab.get('name')
+            if tabName == table2:
+                for col in tab.findall('column'):
+                    if col.get('ref') == table1:
+                        table2Pk = col.get('name')
+                        join = join + table1Pk + ' = ' + table2Pk
+    return join
 
 
-# Extract adjectives in the given user query
-def extractAdjectives(tagged):
-    adjectivesList = []
-    for word, tag in tagged:
-        if tag in 'JJ' or tag in 'JJR' or tag in 'JJS' or tag in 'NNP':
-            adjectivesList.append(word)
-    return adjectivesList
 
 
-def extractConditionAttribute(nouns, attributesList, tagged, attributeValueList):
-    greaterThanList = ['greater', 'bigger', 'higher', 'great', 'more', 'lesser', 'smaller', 'lower', 'less']
-    lesserThanList = ['lesser', 'smaller', 'lower', 'less']
-    equalList = ['equal', 'equals', 'same']
-    extractedWordsList = []
-    conditionAttributeList = []
-    taggedWords = []
-    posTaggedAttributeValuelist=nltk.pos_tag(attributeValueList)
 
-    for word, tag in tagged:
-        if not (not (tag not in 'VBZ') or not (word in nouns)):
-            taggedWords.append(word)
+# print("join1 :", join2)
 
-    for word in taggedWords:
-        if word in greaterThanList or word in lesserThanList or word in equalList:
-            id = taggedWords.index(word)
-            attributeName = taggedWords[id - 1]
-            extractedWordsList.append(attributeName)
-            nouns.remove(taggedWords[id])
-    for word in extractedWordsList:
-        if word in attributesList:
-            conditionAttributeList.append(word)
+def join3(tableList):
+    table1Pk = ''
+    table2Pk = ''
+    table3Pk = ''
+    join = []
+    joinString=''
+    table1 = tableList[0]
+    table2 = tableList[1]
+    table3 = tableList[2]
+
+    for table in root.findall('table'):
+        tableName = table.get('name')
+        if tableName == table1:
+            for column in table.findall('column'):
+                value1 = column.get('value1')
+                value2 = column.get('value2')
+                if value1:
+                    table1Pk = table1Pk + column.get('name')
+                if value2:
+                    if column.get('ref') == table2:
+                        table1Pk = ''
+                        table1Pk = table1Pk + column.get('name')
+                        for tab in root.findall('table'):
+                            tabName = tab.get('name')
+                            if tabName == table2:
+                                for col in tab.findall('column'):
+                                    if col.get('value1'):
+                                        table2Pk = table2Pk + col.get('name')
+                                        joinString = joinString + table1 + '.' + table1Pk + ' = ' + table2 + '.' + table2Pk
+                                        join.append(joinString)
+
+                    elif column.get('ref') == table3:
+                        joinString=''
+                        table1Pk = ''
+                        table1Pk = table1Pk + column.get('name')
+                        for tab in root.findall('table'):
+                            tabName = tab.get('name')
+                            if tabName == table3:
+                                for col in tab.findall('column'):
+                                    if col.get('value1'):
+                                        table3Pk = table3Pk + col.get('name')
+                                        joinString =joinString + table1 + '.' + table1Pk + ' = ' + table3 + '.' + table3Pk
+                                        join.append(joinString)
+
+    table1Pkv = ''
+    table2Pkv = ''
+    table3Pkv = ''
+    joinString = ''
+    table1v = tableList[0]
+    table2v = tableList[1]
+    table3v = tableList[2]
+    for table in root.findall('table'):
+        tableName = table.get('name')
+        if tableName == table2v:
+            for column in table.findall('column'):
+                value1 = column.get('value1')
+                value2 = column.get('value2')
+                if value1:
+                    table2Pkv = table2Pkv + column.get('name')
+                if value2:
+                    if column.get('ref') == table1v:
+                        table2Pkv = ''
+                        table2Pkv = table2Pkv + column.get('name')
+                        for tab in root.findall('table'):
+                            tabName = tab.get('name')
+                            if tabName == table1v:
+                                for col in tab.findall('column'):
+                                    if col.get('value1'):
+                                        table1Pkv = table1Pkv + col.get('name')
+                                        joinString =joinString + table2v + '.' + table2Pkv + ' = ' + table1v + '.' + table1Pkv
+                                        join.append(joinString)
+                    elif column.get('ref') == table3v:
+                        joinString=''
+                        table2Pkv = ''
+                        table2Pkv = table2Pkv + column.get('name')
+                        for tab in root.findall('table'):
+                            tabName = tab.get('name')
+                            if tabName == table3v:
+                                for col in tab.findall('column'):
+                                    if col.get('value1'):
+                                        table3Pkv = table3Pkv + col.get('name')
+                                        joinString = joinString + table2v + '.' + table2Pkv + ' = ' + table3v + '.' + table3Pkv
+                                        join.append(joinString)
+    finalJoin=''
+    finalJoin=finalJoin+join[0]+' AND '+join[1]
+    return finalJoin
+
+
+#y = joining(["location","department","project"])
+#print("join 3 :", y)
+
+
+def conditionConcatenator(conditionAttributeList, operatorSymbolList, conditionValueList, concatenatingOperatorList,
+                          join):
+    length = len(conditionValueList)
+    count = 0
+    condition = ''
+    while count < length:
+        attribute = conditionAttributeList[count]
+        symbol = operatorSymbolList[count]
+        value = conditionValueList[count]
+        if not (len(concatenatingOperatorList) == count):
+            concatenatingOperator = concatenatingOperatorList[count]
+            condition = condition + attribute+' ' + symbol +' '+ value + ' ' + concatenatingOperator + ' '
         else:
-            for att in attributesList:
-                lemmas = set(wordnet.all_lemma_names())
-                if att in lemmas and word in lemmas:
-                    s1 = wn.synsets(att)[0]
-                    s2 = wn.synsets(word)[0]
-                    sim = s1.wup_similarity(s2)
-                    if sim is None:
-                        return
-                    if sim >= 0.8:
-                        conditionAttributeList.append(att)
-                    # elif sim >= 0.8:
-                    # conditionAttributeList.append(att)
-                    # else:
-                    #     return
-
-    for word, tag in posTaggedAttributeValuelist:
-        if tag in ('CD') and len(conditionAttributeList)==0:
-            number = int(word)
-            if number >= 100:
-                conditionAttributeList.append('salary')
-    return conditionAttributeList
+            condition = condition + attribute+' ' + symbol +' '+ value
+        count += 1
+    if join:
+        if condition == '':
+            condition = condition + join
+        else:
+            condition = condition + ' and ' + join
+        print("condition :", condition)
+    return condition
 
 
+def generateSqlQuery(attributeList, tableList, condition):
+    sqlQuery = ''
+    if attributeList and tableList and condition:
+        sqlQuery = "SELECT " + ', '.join(attributeList) + " FROM " + ', '.join(tableList) + " WHERE " + condition + ";"
 
-def extractConditionConcatenatingOperator(cardinalDigits, tagged):
-    andList = ['and']
-    orList = ['or']
-    cdIndexList = []
-    operatorList = []
-    print("nouns :", tagged)
-    taggedWords = []
-    words = []
-    for word, tag in tagged:
-        if tag not in 'VBZ':
-            taggedWords.append(word)
-    if 1 < len(cardinalDigits):
-        for word, tag in taggedWords:
-            if tag in 'VBZ':
-                continue
-            if tag in 'CD' or tag in 'NNP' or tag in 'NNPS':
-                cdIndexList.append(word)
-            words.append(word)
-        lengthOfCDIndexList = len(cdIndexList)
-        lengthOfWordsList = len(words)
-        count = 0
-        while count < lengthOfCDIndexList:
-            chunkStartIndex = count
-            chunkEndIndex = chunkStartIndex + 1
-            count += 1
-            chunkStart = words.index(cdIndexList[chunkStartIndex])
-            if chunkStart != lengthOfWordsList - 1:
-                chunkEnd = words.index(cdIndexList[chunkEndIndex])
-                for i in range(chunkStart, chunkEnd):
-                    if words[i] in andList or words[i] in orList:
-                        operator = words[i]
-                        operatorList.append(operator)
-            else:
-                continue
-    return operatorList
+    if attributeList and tableList and not condition:
+        sqlQuery = "SELECT " + ','.join(attributeList) + " FROM " + ','.join(tableList) + ";"
 
+    if not attributeList and tableList and condition:
+        sqlQuery = "SELECT * FROM " + ', '.join(tableList) + " WHERE " + condition + ";"
 
-def tockenize(sentence):
-    tockenized = nltk.word_tokenize(sentence)
-    print("tockens", tockenized)
-    tagged = nltk.pos_tag(tockenized)
-    print("tagged ", tagged)
-    return tagged
-
-
-def lemmatizing(tagged):
-    lemmatizer = WordNetLemmatizer()
-    lemmatizedWordList = []
-    for word in tagged:
-        lemmatizedWord = lemmatizer.lemmatize(word)
-        lemmatizedWordList.append(lemmatizedWord)
-    return lemmatizedWordList
-
-
-def lemmatizing2(tagged):
-    lemmatizer = WordNetLemmatizer()
-    lemmatizedWordList = []
-    for word, tag in tagged:
-        lemmatizedWord = lemmatizer.lemmatize(word)
-        lemmatizedWordList.append(lemmatizedWord)
-    posTaggedlemmatizedWordList = nltk.pos_tag(lemmatizedWordList)
-    return posTaggedlemmatizedWordList
-
-
-def lemmatizeSingleWord(word):
-    lemmatizer = WordNetLemmatizer()
-    lemmatizedWord = lemmatizer.lemmatize(word)
-    return lemmatizedWord
+    if not attributeList and not condition:
+        sqlQuery = "SELECT * FROM " + ','.join(tableList) + ";"
+    return sqlQuery

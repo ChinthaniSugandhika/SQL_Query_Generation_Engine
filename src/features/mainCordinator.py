@@ -97,13 +97,14 @@ def getAttributeNames(attributes, tabs, taggedList, tables):
                                 attributeList.append(att)
     for noun in nouns:
         if noun == 'name':
-            attributeList.append(' first_name')
-            attributeList.append(' middle_name')
-            attributeList.append(' last_name')
+            attributeList.append('first_name')
+            attributeList.append('middle_name')
+            attributeList.append('last_name')
 
     for x in attributeList:
         if x not in duplicateAttributeList:
             duplicateAttributeList.append(x)
+
     return duplicateAttributeList
 
 
@@ -226,9 +227,11 @@ def identifyTablesOfTheRelevantAttribute(identifiedAttributeNames):
     print("attList :", attributeList)
     return tableList
 
+
 def intermediateLayer(userInput):
     outputDic = {}
-    taggedWordList = preProcessor.tockenize(userInput)
+    tockens = preProcessor.tockenize(userInput)
+    taggedWordList = preProcessor.posTagger(userInput)
     filterdSentence = preProcessor.removeStopWords(taggedWordList)
     print("filtered :", filterdSentence)
     lemmedText = preProcessor.lemmatizing2(filterdSentence)
@@ -239,7 +242,7 @@ def intermediateLayer(userInput):
     print("att value: ", attributeValues)
     adjectivesNouns = preProcessor.extractAdjectivesAndNouns(taggedWordList)
     print("adjectives ", adjectivesNouns)
-    adjectiveAdverbNouns= preProcessor.extractAdjectivesAdverbsdNouns(taggedWordList)
+    adjectiveAdverbNouns = preProcessor.extractAdjectivesAdverbsdNouns(taggedWordList)
     adverbs = preProcessor.extractAdverbs(taggedWordList)
     print("adverbs ", adverbs)
     adjectives = preProcessor.extractAdjectives(taggedWordList)
@@ -261,16 +264,21 @@ def intermediateLayer(userInput):
                                                                     attributeValues)
     if conditionAttributeName and not tableNames and not attributeNames:
         for conditionAttribute in conditionAttributeName:
-            conditionAttributeNamesList=[]
+            conditionAttributeNamesList = []
             conditionAttributeNamesList.append(conditionAttribute)
-            tableNames=identifyTablesOfTheRelevantAttribute(conditionAttributeNamesList)
-            #tableNames.append(tableName)
+            tableNames = identifyTablesOfTheRelevantAttribute(conditionAttributeNamesList)
+            # tableNames.append(tableName)
+    if attributeNames and not tableNames:
+        for attribute in attributeNames:
+            attList = []
+            attList.append(attribute)
+            tableNames = identifyTablesOfTheRelevantAttribute(attList)
 
     print("condition Att :", conditionAttributeName)
     concatenatingOperator = preProcessor.extractConditionConcatenatingOperator(attributeValues,
                                                                                taggedWordList)
     print("concat", concatenatingOperator)
-    adjectiveAttributeValueCondition = knowledgebase.attributeValueKnowledgeBase(adjectives)
+    adjectiveAttributeValueCondition = knowledgebase.attributeValueKnowledgeBase(adjectiveAdverbNouns)
     print("adjectiveAttributeValueCondition : ", adjectiveAttributeValueCondition)
     condition = queryGenerator.conditionConcatenator(conditionAttributeName, symbol, attributeValues,
                                                      concatenatingOperator, join)
@@ -282,9 +290,9 @@ def intermediateLayer(userInput):
         finalCondition = finalCondition + adjectiveAttributeValueCondition
     if condition and not finalCondition:
         finalCondition = finalCondition + condition
-    #intermediateStatement = "SELECT " + ','.join(attributeNames) + " FROM " + ','.join(
-        #tableNames) + ' WHERE ' + finalCondition + ";"
-    #print("intermediateStatement", intermediateStatement)
+    intermediateStatement = "SELECT " + ','.join(attributeNames) + " FROM " + ','.join(
+        tableNames) + ' WHERE ' + finalCondition + ";"
+    print("intermediateStatement", intermediateStatement)
     finalQuery = queryGenerator.generateSqlQuery(attributeNames, tableNames, finalCondition)
     outputDic['query'] = finalQuery
     outputDic['tables'] = tableNames
